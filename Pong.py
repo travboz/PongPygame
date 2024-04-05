@@ -4,102 +4,34 @@ import random
 from pygame.locals import *
 import sys
 
-from Paddle import *
 from Ball import *
 from Player import *
 from Opponent import *
 
-def ball_animation():
-    global ball_speed_x, ball_speed_y, player_score, opponent_score, score_time
-
-    ball.x += ball_speed_x
-    ball.y += ball_speed_y
-
-    # reversing the ball speeds on contact with borders
-    if ball.top <= 0 or ball.bottom >= SCREEN_HEIGHT:
-        ball_speed_y *= -1
-
-    if ball.left <= 0:
-        player_score += 1
-        score_time = pygame.time.get_ticks()
-
-    if ball.right >= SCREEN_WIDTH:
-        opponent_score += 1
-        score_time = pygame.time.get_ticks()
-
-    if ball.colliderect(player.getRect()) and ball_speed_x > 0:
-        if abs(ball.right - player.getRect().left) < 10:
-            ball_speed_x *= -1
-        elif abs(ball.bottom - player.getRect().top) < 10 and ball_speed_y > 0:
-            ball_speed_y *= -1
-        elif abs(ball.top - player.getRect().bottom) < 10 and ball_speed_y < 0:
-            ball_speed_y *= -1
-
-    if ball.colliderect(opponent) and ball_speed_x < 0:
-        if abs(ball.left - opponent.right) < 10:
-            ball_speed_x *= -1
-        elif abs(ball.bottom - opponent.top) < 10 and ball_speed_y > 0:
-            ball_speed_y *= -1
-        elif abs(ball.top - opponent.bottom) < 10 and ball_speed_y < 0:
-            ball_speed_y *= -1
-
-
-def opponent_ai():
-    if opponent.top < ball.y:
-        opponent.top += opponent_speed
-    if opponent.bottom > ball.y:
-        opponent.bottom -= opponent_speed
-
-    if opponent.top <= 0:
-        opponent.top = 0
-    if opponent.bottom >= SCREEN_HEIGHT:
-        opponent.bottom = SCREEN_HEIGHT
-
-def ball_restart():
-    global ball_speed_x, ball_speed_y, score_time
-
-    current_time = pygame.time.get_ticks()
-    ball.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-
-    if current_time - score_time < 700:
-        number_three = game_font.render("3", False, LIGHT_GRAY)
-        screen.blit(number_three, (SCREEN_WIDTH/2 - 10, SCREEN_HEIGHT/2 + 20))
-
-    if 700 < current_time - score_time < 1400:
-        number_two = game_font.render("2", False, LIGHT_GRAY)
-        screen.blit(number_two, (SCREEN_WIDTH/2 - 10, SCREEN_HEIGHT/2 + 20))
-
-    if 1400 < current_time - score_time < 2100:
-        number_one = game_font.render("1", False, LIGHT_GRAY)
-        screen.blit(number_one, (SCREEN_WIDTH/2 - 10, SCREEN_HEIGHT/2 + 20))
-
-    if current_time - score_time < 2100:
-        ball_speed_x, ball_speed_y = 0, 0
-    else:
-        ball_speed_y = 7 * random.choice((1, -1))
-        ball_speed_x = 7 * random.choice((1, -1))
-        score_time = None
-
 # 2 - Define constants
-screen_info = {
-    "width" : 800,
-    "height" : 640,
-    "fps" : 60,
-}
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 640
 FRAMES_PER_SECOND = 60
+
+# Colours
 GRAY = (230, 230, 230)
 LIGHT_GRAY = (200, 200, 200)
 BLACK = (0, 0, 0)
 
+# Asset values
 BALL_WIDTH_HEIGHT = 30
 PLAYER_DEFAULT_SPEED = 0
+OPP_DEFAULT_SPEED = 7
 
-PLAYER_DIM = (10, 140)
 PADDLE_DIMENSIONS = {
     "width" : 10,
     "height" : 140
+}
+
+screen_info = {
+    "width" : SCREEN_WIDTH,
+    "height" : SCREEN_HEIGHT,
+    "fps" : FRAMES_PER_SECOND,
 }
 
 # 3 - Initialize the world
@@ -110,7 +42,6 @@ clock = pygame.time.Clock()
 pygame.display.set_caption("Pong")
 
 # 4 - Load assets: image(s), sound(s),  etc.
-
 player_info = {
     "left" : SCREEN_WIDTH - 20,
     "top" : (SCREEN_HEIGHT / 2 - PADDLE_DIMENSIONS["height"] / 2),
@@ -134,27 +65,20 @@ ball_info = {
 # 5 - Initialize variables
 ball_speed_x = 7 * random.choice((1, -1))
 ball_speed_y = 7 * random.choice((1, -1))
-opponent_speed = 7
-
-opponent_paddle = Paddle(opponent_info)
 
 player = Player(
-    Paddle(player_info),
+    player_info,
     PLAYER_DEFAULT_SPEED
 )
-opp = Opponent(Paddle(opponent_info), 7)
+opponent = Opponent(
+    opponent_info,
+    OPP_DEFAULT_SPEED
+)
 
-opponent = opp.getRect()
-ball = Ball(ball_info).getRect()
-
-# Text variables
-player_score = 0
-opponent_score = 0
-
-game_font = pygame.font.Font("freesansbold.ttf", 32)
-
-# Score timer
-score_time = True
+ball = Ball(
+    ball_info,
+    ball_speed_x,
+    ball_speed_y)
 
 # 6 - Loop forever
 while True:
@@ -168,10 +92,8 @@ while True:
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_DOWN:
-                # player.speed += 7
                 player.adjustSpeed(7)
             if event.key == pygame.K_UP:
-                # player.speed -= 7
                 player.adjustSpeed(-7)
 
         if event.type == pygame.KEYUP:
@@ -182,28 +104,18 @@ while True:
 
     # 8 - Do any "per frame" actions
     # Game logic
-    ball_animation()
+    ball.ball_animation(player, opponent, screen_info)
     player.player_animation(screen_info)
-    opponent_ai()
+    opponent.ai_animation(screen_info, ball)
 
     # 9 - Clear the window
     screen.fill(BLACK)
 
     # 10 - Draw all window elements
     pygame.draw.rect(screen, LIGHT_GRAY, player.getRect())
-    pygame.draw.rect(screen, LIGHT_GRAY, opp.getRect())
-    pygame.draw.ellipse(screen, LIGHT_GRAY, ball)
+    pygame.draw.rect(screen, LIGHT_GRAY, opponent.getRect())
+    pygame.draw.ellipse(screen, LIGHT_GRAY, ball.getRect())
     pygame.draw.aaline(screen, LIGHT_GRAY, (SCREEN_WIDTH/2, 0), (SCREEN_WIDTH/2, SCREEN_HEIGHT))
-
-    if score_time:
-        ball_restart()
-
-
-    player_text = game_font.render(f"{player_score}", False, LIGHT_GRAY)
-    screen.blit(player_text, (660, 470))
-
-    opponent_text = game_font.render(f"{opponent_score}", False, LIGHT_GRAY)
-    screen.blit(opponent_text, (600, 470))
 
     # 11 - Update the window
     pygame.display.flip()
