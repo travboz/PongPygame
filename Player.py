@@ -1,37 +1,3 @@
-# import pygame
-# from pygame.locals import *
-#
-# class Player():
-#     def __init__(self, paddle_info, speed):
-#         self.paddle = pygame.Rect(
-#             paddle_info["left"],
-#             paddle_info["top"],
-#             paddle_info["width"],
-#             paddle_info["height"],
-#         )
-#         self.speed = speed
-#         self.score = 0
-#
-#     def getRect(self):
-#         return self.paddle
-#
-#     def adjustSpeed(self, newSpeed):
-#         self.speed += newSpeed
-#
-#     def getScore(self):
-#         return self.score
-#
-#     def scorePoint(self):
-#         self.score += 1
-#
-#     def player_animation(self, screen_info):
-#         self.getRect().y += self.speed
-#         if self.getRect().top <= 0:
-#             self.getRect().top = 0
-#         if self.getRect().bottom >= screen_info["height"]:
-#             self.getRect().bottom = screen_info["height"]
-
-
 import pygame
 from pygame.locals import *
 
