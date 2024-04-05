@@ -12,3 +12,9 @@ class Ball():
 
     def getRect(self):
         return self.ball
+
+    def getX(self):
+        return self.ball.x
+
+    def getY(self):
+        return self.ball.y

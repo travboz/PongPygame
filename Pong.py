@@ -6,6 +6,8 @@ import sys
 
 from Paddle import *
 from Ball import *
+from Player import *
+from Opponent import *
 
 def ball_animation():
     global ball_speed_x, ball_speed_y, player_score, opponent_score, score_time
@@ -25,12 +27,12 @@ def ball_animation():
         opponent_score += 1
         score_time = pygame.time.get_ticks()
 
-    if ball.colliderect(player) and ball_speed_x > 0:
-        if abs(ball.right - player.left) < 10:
+    if ball.colliderect(player.getRect()) and ball_speed_x > 0:
+        if abs(ball.right - player.getRect().left) < 10:
             ball_speed_x *= -1
-        elif abs(ball.bottom - player.top) < 10 and ball_speed_y > 0:
+        elif abs(ball.bottom - player.getRect().top) < 10 and ball_speed_y > 0:
             ball_speed_y *= -1
-        elif abs(ball.top - player.bottom) < 10 and ball_speed_y < 0:
+        elif abs(ball.top - player.getRect().bottom) < 10 and ball_speed_y < 0:
             ball_speed_y *= -1
 
     if ball.colliderect(opponent) and ball_speed_x < 0:
@@ -41,12 +43,6 @@ def ball_animation():
         elif abs(ball.top - opponent.bottom) < 10 and ball_speed_y < 0:
             ball_speed_y *= -1
 
-def player_animation():
-    player.y += player_speed
-    if player.top <= 0:
-        player.top = 0
-    if player.bottom >= SCREEN_HEIGHT:
-        player.bottom = SCREEN_HEIGHT
 
 def opponent_ai():
     if opponent.top < ball.y:
@@ -85,6 +81,11 @@ def ball_restart():
         score_time = None
 
 # 2 - Define constants
+screen_info = {
+    "width" : 800,
+    "height" : 640,
+    "fps" : 60,
+}
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 640
 FRAMES_PER_SECOND = 60
@@ -93,6 +94,7 @@ LIGHT_GRAY = (200, 200, 200)
 BLACK = (0, 0, 0)
 
 BALL_WIDTH_HEIGHT = 30
+PLAYER_DEFAULT_SPEED = 0
 
 PLAYER_DIM = (10, 140)
 PADDLE_DIMENSIONS = {
@@ -130,17 +132,20 @@ ball_info = {
 }
 
 # 5 - Initialize variables
-player_paddle = Paddle(player_info)
-opponent_paddle = Paddle(opponent_info)
-
-player = player_paddle.getRect()
-opponent = opponent_paddle.getRect()
-ball = Ball(ball_info).getRect()
-
 ball_speed_x = 7 * random.choice((1, -1))
 ball_speed_y = 7 * random.choice((1, -1))
-player_speed = 0
 opponent_speed = 7
+
+opponent_paddle = Paddle(opponent_info)
+
+player = Player(
+    Paddle(player_info),
+    PLAYER_DEFAULT_SPEED
+)
+opp = Opponent(Paddle(opponent_info), 7)
+
+opponent = opp.getRect()
+ball = Ball(ball_info).getRect()
 
 # Text variables
 player_score = 0
@@ -163,29 +168,30 @@ while True:
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_DOWN:
-                player_speed += 7
+                # player.speed += 7
+                player.adjustSpeed(7)
             if event.key == pygame.K_UP:
-                player_speed -= 7
+                # player.speed -= 7
+                player.adjustSpeed(-7)
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_DOWN:
-                player_speed -= 7
+                player.adjustSpeed(-7)
             if event.key == pygame.K_UP:
-                player_speed += 7
-
+                player.adjustSpeed(7)
 
     # 8 - Do any "per frame" actions
     # Game logic
     ball_animation()
-    player_animation()
+    player.player_animation(screen_info)
     opponent_ai()
 
     # 9 - Clear the window
     screen.fill(BLACK)
 
     # 10 - Draw all window elements
-    pygame.draw.rect(screen, LIGHT_GRAY, player)
-    pygame.draw.rect(screen, LIGHT_GRAY, opponent)
+    pygame.draw.rect(screen, LIGHT_GRAY, player.getRect())
+    pygame.draw.rect(screen, LIGHT_GRAY, opp.getRect())
     pygame.draw.ellipse(screen, LIGHT_GRAY, ball)
     pygame.draw.aaline(screen, LIGHT_GRAY, (SCREEN_WIDTH/2, 0), (SCREEN_WIDTH/2, SCREEN_HEIGHT))
 
