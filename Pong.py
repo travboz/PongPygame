@@ -4,6 +4,9 @@ import random
 from pygame.locals import *
 import sys
 
+from Paddle import *
+from Ball import *
+
 def ball_animation():
     global ball_speed_x, ball_speed_y, player_score, opponent_score, score_time
 
@@ -88,19 +91,14 @@ FRAMES_PER_SECOND = 60
 GRAY = (230, 230, 230)
 LIGHT_GRAY = (200, 200, 200)
 BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-YELLOW = (255, 255, 0)
-TEAL = (0, 255, 255)
-PURPLE = (255, 0, 255)
 
-BALL_HEIGHT = 30
-BALL_WIDTH = 30
+BALL_WIDTH_HEIGHT = 30
 
-CENTER_BALL = ((SCREEN_WIDTH / 2 - BALL_HEIGHT // 2), (SCREEN_HEIGHT / 2 - BALL_WIDTH // 2))
 PLAYER_DIM = (10, 140)
+PADDLE_DIMENSIONS = {
+    "width" : 10,
+    "height" : 140
+}
 
 # 3 - Initialize the world
 pygame.init()
@@ -111,11 +109,33 @@ pygame.display.set_caption("Pong")
 
 # 4 - Load assets: image(s), sound(s),  etc.
 
-# 5 - Initialize variables
-player = pygame.Rect(SCREEN_WIDTH - 20, (SCREEN_HEIGHT/2 - PLAYER_DIM[1]/2), PLAYER_DIM[0], PLAYER_DIM[1])
-opponent = pygame.Rect(10, (SCREEN_HEIGHT/2 - PLAYER_DIM[1]/2), PLAYER_DIM[0], PLAYER_DIM[1])
+player_info = {
+    "left" : SCREEN_WIDTH - 20,
+    "top" : (SCREEN_HEIGHT / 2 - PADDLE_DIMENSIONS["height"] / 2),
+    "width" : PADDLE_DIMENSIONS["width"],
+    "height" : PADDLE_DIMENSIONS["height"],
+}
 
-ball = pygame.Rect(CENTER_BALL[0], CENTER_BALL[1], BALL_WIDTH, BALL_HEIGHT)
+opponent_info = {
+    "left" : 10,
+    "top" : (SCREEN_HEIGHT / 2 - PADDLE_DIMENSIONS["height"] / 2),
+    "width" : PADDLE_DIMENSIONS["width"],
+    "height" : PADDLE_DIMENSIONS["height"],
+}
+
+ball_info = {
+    "screen_center_x" : (SCREEN_WIDTH / 2 - BALL_WIDTH_HEIGHT // 2),
+    "screen_center_y" : (SCREEN_HEIGHT / 2 - BALL_WIDTH_HEIGHT // 2),
+    "width_height" : 30,
+}
+
+# 5 - Initialize variables
+player_paddle = Paddle(player_info)
+opponent_paddle = Paddle(opponent_info)
+
+player = player_paddle.getRect()
+opponent = opponent_paddle.getRect()
+ball = Ball(ball_info).getRect()
 
 ball_speed_x = 7 * random.choice((1, -1))
 ball_speed_y = 7 * random.choice((1, -1))
